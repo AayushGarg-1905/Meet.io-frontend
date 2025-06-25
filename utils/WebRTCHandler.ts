@@ -181,4 +181,38 @@ export default class WebRTCHandler {
         console.log("Call ended and resources cleaned up.");
     }
 
+    async toggleLocalVideo(){
+        if(!this.localStream){
+            return;
+        }
+        const videoTrack = this.localStream.getVideoTracks()[0];
+        videoTrack.enabled = !videoTrack.enabled
+        this.socket.emit('update-video-toggle-on-peer',{roomId:this.roomId, isVideoEnabled:videoTrack.enabled});
+    }
+
+    async toggleRemoteVideo(isVideoEnabled:boolean){
+        if(!this.remoteStream){
+            return;
+        }
+        const videoTrack = this.remoteStream.getVideoTracks()[0];
+        videoTrack.enabled = isVideoEnabled
+    }
+
+    async toggleLocalAudio(){
+        if(!this.localStream){
+            return;
+        }
+        const audioTrack = this.localStream.getAudioTracks()[0];
+        audioTrack.enabled = !audioTrack.enabled
+        this.socket.emit('update-audio-toggle-on-peer',{roomId:this.roomId, isAudioEnabled:audioTrack.enabled});
+    }
+
+    async toggleRemoteAudio(isAudioEnabled:boolean){
+        if(!this.remoteStream){
+            return;
+        }
+        const audioTrack = this.remoteStream.getAudioTracks()[0];
+        audioTrack.enabled = isAudioEnabled
+    }
+
 }

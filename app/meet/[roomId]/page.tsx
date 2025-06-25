@@ -2,7 +2,15 @@
 import { useSocket } from '@/context/SocketProvider';
 import WebRTCHandler from '@/utils/WebRTCHandler';
 import { redirect, useParams } from 'next/navigation'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import {
+  IoMdMic,
+  IoMdMicOff,
+  IoVideocam,
+  IoVideocamOff,
+  FcEndCall,
+  HiPhoneXMark,
+} from '@/components/Meet/icons'
 
 interface RoomParams {
   roomId: string;
@@ -15,6 +23,9 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
   const localVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const remoteVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const webRTCRef = useRef<WebRTCHandler | null>(null);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isAudioOn, setIsAudioOn] = useState(true);
+
 
   useEffect(() => {
     if (!socket || !roomId) return;
@@ -48,8 +59,16 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
       webRTCRef.current?.addIceCandidate(candidate);
     });
 
-    socket.on('peer-leave-room',()=>{
+    socket.on('peer-leave-room', () => {
       webRTCRef.current?.handlePeerLeaveRoom();
+    })
+
+    socket.on('update-video-toggle-on-peer',async({isVideoEnabled})=>{
+      await webRTCRef.current?.toggleRemoteVideo(isVideoEnabled);
+    })
+
+    socket.on('update-audio-toggle-on-peer',async({isAudioEnabled})=>{
+      await webRTCRef.current?.toggleRemoteAudio(isAudioEnabled);
     })
 
     return () => {
@@ -58,6 +77,8 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
       socket.off("receive-answer");
       socket.off("receive-ice-candidate");
       socket.off('peer-leave-room');
+      socket.off('update-video-toggle-on-peer');
+      socket.off('update-audio-toggle-on-peer')
     };
   }, [socket, roomId]);
 
@@ -72,34 +93,45 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
     redirect('/');
   }
 
+  const toggleVideo = async () => {
+    if (!localVideoRef.current) return;
+    await webRTCRef.current?.toggleLocalVideo();
+    setIsVideoOn((prev) => !prev);
+
+  };
+
+  const toggleAudio = async () => {
+    if (!localVideoRef.current) return;
+    await webRTCRef.current?.toggleLocalAudio();
+    setIsAudioOn((prev) => !prev);
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <h2 className="text-xl font-bold">Room ID: {roomId}</h2>
       <div className="flex gap-4 w-[100%] border-2 border-blue-400 ">
         <video ref={localVideoRef} autoPlay muted className="w-1/2 h-1/2 bg-black" />
-        {remoteVideoRef.current?.srcObject === null ?
-         null
-         : 
-        <video ref={remoteVideoRef} autoPlay className="w-1/2 h-1/2 bg-black" />
+        {remoteVideoRef.current?.srcObject === null?
+          null
+          :
+          <video ref={remoteVideoRef} autoPlay className="w-1/2 h-1/2 bg-black" />
         }
       </div>
 
-
       <div className='flex gap-1.5'>
-        <button
-          onClick={startCall}
-          className="bg-blue-500 px-4 py-2 rounded text-white"
-        >
+        <button onClick={startCall} className="bg-blue-500 px-4 py-2 rounded text-white">
           Start call
         </button>
-        <button
-          onClick={endCall}
-          className="bg-red-500 px-4 py-2 rounded text-white"
-        >
-          End Call
+        <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
+          {isVideoOn ? <IoVideocam/> : <IoVideocamOff/>}
+        </button>
+        <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
+          {isAudioOn ? <IoMdMic/> : <IoMdMicOff/>}
+        </button>
+        <button onClick={endCall} className="bg-red-500 px-4 py-2 rounded text-white">
+          <HiPhoneXMark/>
         </button>
       </div>
-
 
     </div>
   );
