@@ -48,11 +48,16 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
       webRTCRef.current?.addIceCandidate(candidate);
     });
 
+    socket.on('peer-leave-room',()=>{
+      webRTCRef.current?.handlePeerLeaveRoom();
+    })
+
     return () => {
       socket.off("offer-available");
       socket.off("receive-offer");
       socket.off("receive-answer");
       socket.off("receive-ice-candidate");
+      socket.off('peer-leave-room');
     };
   }, [socket, roomId]);
 
@@ -61,7 +66,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
     await webRTCRef.current?.init(true);
   };
 
-  const endCall = async()=>{
+  const endCall = async () => {
     console.log('ending call');
     await webRTCRef.current?.endCall();
     redirect('/');
@@ -72,26 +77,30 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
       <h2 className="text-xl font-bold">Room ID: {roomId}</h2>
       <div className="flex gap-4 w-[100%] border-2 border-blue-400 ">
         <video ref={localVideoRef} autoPlay muted className="w-1/2 h-1/2 bg-black" />
+        {remoteVideoRef.current?.srcObject === null ?
+         null
+         : 
         <video ref={remoteVideoRef} autoPlay className="w-1/2 h-1/2 bg-black" />
+        }
       </div>
 
 
       <div className='flex gap-1.5'>
         <button
-        onClick={startCall}
-        className="bg-blue-500 px-4 py-2 rounded text-white"
-      >
-        Start call
-      </button>
-      <button
-        onClick={endCall}
-        className="bg-red-500 px-4 py-2 rounded text-white"
-      >
-        End Call
-      </button> 
+          onClick={startCall}
+          className="bg-blue-500 px-4 py-2 rounded text-white"
+        >
+          Start call
+        </button>
+        <button
+          onClick={endCall}
+          className="bg-red-500 px-4 py-2 rounded text-white"
+        >
+          End Call
+        </button>
       </div>
-      
-      
+
+
     </div>
   );
 }
