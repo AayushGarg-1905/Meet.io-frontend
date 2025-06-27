@@ -10,7 +10,9 @@ import {
   IoVideocamOff,
   FcEndCall,
   HiPhoneXMark,
+  IoChatboxEllipses,
 } from '@/components/Meet/icons'
+import ChatBox from '@/components/Meet/ChatBox';
 
 interface RoomParams {
   roomId: string;
@@ -25,6 +27,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
   const webRTCRef = useRef<WebRTCHandler | null>(null);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
+  const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
 
 
   useEffect(() => {
@@ -63,11 +66,11 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
       webRTCRef.current?.handlePeerLeaveRoom();
     })
 
-    socket.on('update-video-toggle-on-peer',async({isVideoEnabled})=>{
+    socket.on('update-video-toggle-on-peer', async ({ isVideoEnabled }) => {
       await webRTCRef.current?.toggleRemoteVideo(isVideoEnabled);
     })
 
-    socket.on('update-audio-toggle-on-peer',async({isAudioEnabled})=>{
+    socket.on('update-audio-toggle-on-peer', async ({ isAudioEnabled }) => {
       await webRTCRef.current?.toggleRemoteAudio(isAudioEnabled);
     })
 
@@ -107,33 +110,57 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
   };
 
   return (
+
+
     <div className="flex flex-col items-center gap-4 p-4">
       <h2 className="text-xl font-bold">Room ID: {roomId}</h2>
-      <div className="flex gap-4 w-[100%] border-2 border-blue-400 ">
-        <video ref={localVideoRef} autoPlay muted className="w-1/2 h-1/2 bg-black" />
-        {remoteVideoRef.current?.srcObject === null?
-          null
-          :
-          <video ref={remoteVideoRef} autoPlay className="w-1/2 h-1/2 bg-black" />
-        }
-      </div>
+      {socket.id}
 
-      <div className='flex gap-1.5'>
+      
+      <div className="flex gap-4 h-full w-full border-2 border-blue-400">
+
+        <div className={`${isChatBoxOpen ? 'w-[95%]' : 'w-full'} flex`}>
+          <video
+            ref={localVideoRef}
+            autoPlay
+            muted
+            className="w-1/2 bg-black"
+          />
+          {remoteVideoRef.current?.srcObject !== null && (
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              className="w-1/2 bg-black"
+            />
+          )}
+        </div>
+        {isChatBoxOpen && (
+          <div className="w-[25%] border-l border-gray-300">
+            <ChatBox roomId={roomId} />
+          </div>
+        )}
+      </div>
+      
+
+      <div className="flex gap-1.5">
         <button onClick={startCall} className="bg-blue-500 px-4 py-2 rounded text-white">
           Start call
         </button>
         <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
-          {isVideoOn ? <IoVideocam/> : <IoVideocamOff/>}
+          {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
         </button>
         <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
-          {isAudioOn ? <IoMdMic/> : <IoMdMicOff/>}
+          {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
+        </button>
+        <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
+          <IoChatboxEllipses />
         </button>
         <button onClick={endCall} className="bg-red-500 px-4 py-2 rounded text-white">
-          <HiPhoneXMark/>
+          <HiPhoneXMark />
         </button>
       </div>
-
     </div>
+
   );
 }
 
