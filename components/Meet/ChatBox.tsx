@@ -1,11 +1,13 @@
 import { useSocket } from '@/context/SocketProvider';
+import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 
 
 type ChatMsg = {
   senderId: string,
   receiverId?: string,
-  msg: string
+  msg: string,
+  timestamp:string
 }
 
 const ChatBox = ({ roomId }: { roomId: string }) => {
@@ -37,7 +39,8 @@ const ChatBox = ({ roomId }: { roomId: string }) => {
 
   const handleSend = () => {
     if (message.trim() === '') return;
-    socket.emit('send-chat-msg', { roomId, msg: message });
+    const timestamp = moment().toISOString();
+    socket.emit('send-chat-msg', { roomId, msg: message, timestamp });
     setMessage('');
   };
 
@@ -47,7 +50,11 @@ const ChatBox = ({ roomId }: { roomId: string }) => {
       <div className="flex-1 overflow-y-auto mb-2 space-y-2 pr-1">
         {messages.map((msg, idx) => (
           <div key={idx} className="bg-gray-200 rounded-lg p-2 text-sm text-black">
-            {msg.senderId === socket.id ? 'You' : 'Other'}: {msg.msg}
+            <div className='flex gap-1.5'>
+              <p>{msg.senderId === socket.id ? 'You' : 'Other'}</p>
+              <p>{moment(msg.timestamp).format('hh:mm A')}</p>
+            </div>
+             {msg.msg}
           </div>
         ))}
 

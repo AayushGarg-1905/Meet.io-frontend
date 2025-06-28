@@ -51,10 +51,13 @@ export default class WebRTCHandler {
     }
 
     async init(isOfferer: boolean): Promise<void> {
+
         this.localStream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true,
         });
+
+        
 
         if (this.localVideoRef && this.localVideoRef.current) {
             this.localVideoRef.current.srcObject = this.localStream;

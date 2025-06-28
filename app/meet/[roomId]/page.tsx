@@ -114,9 +114,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
 
     <div className="flex flex-col items-center gap-4 p-4">
       <h2 className="text-xl font-bold">Room ID: {roomId}</h2>
-      {socket.id}
 
-      
       <div className="flex gap-4 h-full w-full border-2 border-blue-400">
 
         <div className={`${isChatBoxOpen ? 'w-[95%]' : 'w-full'} flex`}>
@@ -140,25 +138,27 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
           </div>
         )}
       </div>
-      
+
 
       <div className="flex gap-1.5">
         <button onClick={startCall} className="bg-blue-500 px-4 py-2 rounded text-white">
-          Start call
+          Join call
         </button>
-        <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
-          {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
-        </button>
-        <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
-          {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
-        </button>
-        <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
-          <IoChatboxEllipses />
-        </button>
+
+            <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
+              {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
+            </button>
+            <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
+              {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
+            </button>
+            <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
+              <IoChatboxEllipses />
+            </button>
         <button onClick={endCall} className="bg-red-500 px-4 py-2 rounded text-white">
           <HiPhoneXMark />
         </button>
       </div>
+      
     </div>
 
   );
