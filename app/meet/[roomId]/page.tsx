@@ -29,7 +29,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
- 
+
 
   useEffect(() => {
     if (!socket || !roomId) return;
@@ -116,59 +116,58 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
 
   return (
 
-
-    <div className="flex flex-col items-center gap-4 p-4">
+    <div className="flex flex-col items-center gap-4 p-4 h-screen box-border">
       <h2 className="text-xl font-bold">Room ID: {roomId}</h2>
 
-      <div className="flex gap-4 h-full w-full border-2 border-blue-400">
-
-        <div className={`${isChatBoxOpen ? 'w-[95%]' : 'w-full'} flex`}>
-          <video
-            ref={localVideoRef}
-            autoPlay
-            muted
-            className="w-1/2 bg-black"
-          />
-          {remoteVideoRef.current?.srcObject !== null && (
+      <div className="flex w-full flex-1 overflow-hidden">
+        <div className={`flex flex-1 h-full ${isChatBoxOpen ? 'mr-2' : ''} border-2 border-blue-400`}>
+          <div className="flex w-full h-full ">
             <video
-              ref={remoteVideoRef}
+              ref={localVideoRef}
               autoPlay
-              className="w-1/2 bg-black"
+              muted
+              className="w-1/2 h-full bg-black object-cover border-2 border-black"
             />
-          )}
+            {remoteVideoRef.current?.srcObject !== null && (
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                className="w-1/2 h-full bg-black object-cover border-2 border-black"
+              />
+            )}
+          </div>
         </div>
+
         {isChatBoxOpen && (
-          <div className="w-[25%] border-l border-gray-300">
+          <div className="w-[25%] h-full border-2 border-gray-600">
             <ChatBox roomId={roomId} />
           </div>
         )}
       </div>
 
-
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 py-2">
         <button onClick={startCall} className="bg-blue-500 px-4 py-2 rounded text-white">
           Join call
         </button>
-        {isCallActive ? 
-        <>
-        <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
-          {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
-        </button>
-        <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
-          {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
-        </button>
-        <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
-          <IoChatboxEllipses />
-        </button>
-        </>
-        : 
-        null}
-        
+
+        {isCallActive && (
+          <>
+            <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
+              {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
+            </button>
+            <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
+              {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
+            </button>
+            <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
+              <IoChatboxEllipses />
+            </button>
+          </>
+        )}
+
         <button onClick={endCall} className="bg-red-500 px-4 py-2 rounded text-white">
           <HiPhoneXMark />
         </button>
       </div>
-
     </div>
 
   );
