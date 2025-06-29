@@ -30,6 +30,7 @@ const VideoPage = ({ params }:{params:{roomId:string}}) => {
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
 
 
   useEffect(() => {
@@ -120,6 +121,11 @@ const VideoPage = ({ params }:{params:{roomId:string}}) => {
     setIsAudioOn((prev) => !prev);
   };
 
+  const toggleScreenShare = async () => {
+    await webRTCRef.current?.toggleScreenShare();
+    setIsScreenSharing(prev => !prev);
+  };
+
   return (
 
     <div className="flex flex-col items-center gap-4 p-4 h-screen box-border">
@@ -171,6 +177,9 @@ const VideoPage = ({ params }:{params:{roomId:string}}) => {
             </button>
             <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
               <IoChatboxEllipses />
+            </button>
+            <button onClick={toggleScreenShare} className="bg-gray-700 px-4 py-2 rounded text-white">
+              {isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
             </button>
           </>
         )}

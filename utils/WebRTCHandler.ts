@@ -34,6 +34,10 @@ export default class WebRTCHandler {
     private peerConnection: RTCPeerConnection | null;
     private localStream: MediaStream | null;
     private remoteStream: MediaStream | null;
+    private videoSender: RTCRtpSender | null;
+    private isScreenSharing: boolean;
+    private screenTrack: MediaStreamTrack | null
+    private camStream: MediaStream | null;
 
     constructor(
         localVideoRef: React.RefObject<HTMLVideoElement>,
@@ -48,16 +52,20 @@ export default class WebRTCHandler {
         this.peerConnection = null;
         this.localStream = null;
         this.remoteStream = null;
+        this.videoSender = null;
+        this.isScreenSharing = false;
+        this.screenTrack = null;
+        this.camStream = null;
     }
 
     async init(isOfferer: boolean): Promise<void> {
 
-        this.localStream = await navigator.mediaDevices.getUserMedia({
+        this.camStream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true,
         });
 
-        
+        this.localStream = this.camStream
 
         if (this.localVideoRef && this.localVideoRef.current) {
             this.localVideoRef.current.srcObject = this.localStream;
@@ -161,6 +169,11 @@ export default class WebRTCHandler {
             this.localStream = null;
         }
 
+        if (this.camStream) {
+            this.camStream.getTracks().forEach((track) => track.stop());
+            this.camStream = null;
+        }
+
         if (this.peerConnection) {
             this.peerConnection.onicecandidate = null;
             this.peerConnection.ontrack = null;
@@ -184,38 +197,109 @@ export default class WebRTCHandler {
         console.log("Call ended and resources cleaned up.");
     }
 
-    async toggleLocalVideo(){
-        if(!this.localStream){
+    async toggleLocalVideo() {
+        if (!this.localStream) {
             return;
         }
         const videoTrack = this.localStream.getVideoTracks()[0];
         videoTrack.enabled = !videoTrack.enabled
-        this.socket.emit('update-video-toggle-on-peer',{roomId:this.roomId, isVideoEnabled:videoTrack.enabled});
+        this.socket.emit('update-video-toggle-on-peer', { roomId: this.roomId, isVideoEnabled: videoTrack.enabled });
     }
 
-    async toggleRemoteVideo(isVideoEnabled:boolean){
-        if(!this.remoteStream){
+    async toggleRemoteVideo(isVideoEnabled: boolean) {
+        if (!this.remoteStream) {
             return;
         }
         const videoTrack = this.remoteStream.getVideoTracks()[0];
         videoTrack.enabled = isVideoEnabled
     }
 
-    async toggleLocalAudio(){
-        if(!this.localStream){
+    async toggleLocalAudio() {
+        if (!this.localStream) {
             return;
         }
         const audioTrack = this.localStream.getAudioTracks()[0];
         audioTrack.enabled = !audioTrack.enabled
-        this.socket.emit('update-audio-toggle-on-peer',{roomId:this.roomId, isAudioEnabled:audioTrack.enabled});
+        this.socket.emit('update-audio-toggle-on-peer', { roomId: this.roomId, isAudioEnabled: audioTrack.enabled });
     }
 
-    async toggleRemoteAudio(isAudioEnabled:boolean){
-        if(!this.remoteStream){
+    async toggleRemoteAudio(isAudioEnabled: boolean) {
+        if (!this.remoteStream) {
             return;
         }
         const audioTrack = this.remoteStream.getAudioTracks()[0];
         audioTrack.enabled = isAudioEnabled
     }
+
+    private async restoreCamera(): Promise<void> {
+        if (!this.peerConnection) {
+            return;
+        };
+        if (!this.camStream) {
+            return;
+        }
+
+        try {
+            // const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const cameraTrack = this.camStream.getVideoTracks()[0];
+
+            if (this.videoSender) {
+                await this.videoSender.replaceTrack(cameraTrack);
+            }
+
+            this.localStream = this.camStream;
+            if (this.localVideoRef?.current) {
+                this.localVideoRef.current.srcObject = this.camStream;
+            }
+
+            this.isScreenSharing = false;
+        } catch (err) {
+            console.error("Failed to restore webcam", err);
+        }
+    }
+
+
+    async toggleScreenShare(): Promise<void> {
+        if (!this.peerConnection) return;
+
+        if (!this.isScreenSharing) {
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const screenTrack = screenStream.getVideoTracks()[0];
+                this.screenTrack = screenTrack
+
+                if (!this.videoSender) {
+                    this.videoSender = this.peerConnection.getSenders().find(s => s.track?.kind === 'video') || null;
+                }
+
+                if (this.videoSender) {
+                    await this.videoSender.replaceTrack(screenTrack);
+                }
+
+                this.localStream = screenStream;
+                if (this.localVideoRef?.current) {
+                    this.localVideoRef.current.srcObject = screenStream;
+                }
+
+                screenTrack.onended = async () => {
+                    await this.restoreCamera();
+                };
+
+                this.isScreenSharing = true;
+            } catch (err) {
+                console.error("Screen share failed", err);
+            }
+        } else {
+
+            if (this.screenTrack) {
+                this.screenTrack.stop();
+                this.screenTrack = null;
+            }
+
+            await this.restoreCamera();
+            this.isScreenSharing = false
+        }
+    }
+
 
 }
