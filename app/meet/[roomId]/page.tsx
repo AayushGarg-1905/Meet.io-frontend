@@ -14,8 +14,13 @@ import {
 } from '@/components/Meet/icons'
 import ChatBox from '@/components/Meet/ChatBox';
 
+interface PageProps {
+  params: {
+    roomId: string;
+  };
+}
 
-const VideoPage = ({ params }:{params:{roomId:string}}) => {
+const VideoPage = ({ params }: PageProps) => {
   const { roomId } = params;
   const socket = useSocket();
   const localVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
