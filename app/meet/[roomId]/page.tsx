@@ -2,7 +2,8 @@
 import { useSocket } from '@/context/SocketProvider';
 import WebRTCHandler from '@/utils/WebRTCHandler';
 import { redirect, useParams } from 'next/navigation'
-import React, { useEffect, useRef, useState } from 'react'
+import * as React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   IoMdMic,
   IoMdMicOff,
@@ -19,10 +20,9 @@ interface RoomParams {
   roomId: string;
 }
 
-const VideoPage = ({ params }: { params: { roomId: string } }) => {
-  const { roomId } = params
+const VideoPage = ({ params }:{params:{roomId:string}}) => {
+  const { roomId } = params;
   const socket = useSocket();
-  const user = useUser();
   const localVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const remoteVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const webRTCRef = useRef<WebRTCHandler | null>(null);
@@ -36,6 +36,11 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
     if (!socket || !roomId) return;
 
     socket.emit("join-room", roomId);
+
+    socket.on('room-full',()=>{
+      alert('cannot join room because it is full');
+      redirect('/');      
+    })
 
     webRTCRef.current = new WebRTCHandler(
       localVideoRef,
@@ -129,7 +134,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
               muted
               className="w-1/2 h-full bg-black object-cover border-2 border-black"
             />
-            <p className='absolute bottom-2 left-3 text-white bg-black/60 px-2 rounded'>{user.user?.fullName || 'User-1'}</p>
+            {/* <p className='absolute bottom-2 left-3 text-white bg-black/60 px-2 rounded'>{user.user?.fullName || 'User-1'}</p> */}
             {remoteVideoRef.current?.srcObject !== null && (
               <>
               <video
@@ -137,7 +142,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
                 autoPlay
                 className="w-1/2 h-full bg-black object-cover border-2 border-black"
               />
-              <p className='absolute bottom-2 right-3 text-white bg-black/60 px-2 rounded'>{'remote-user'}</p>
+              {/* <p className='absolute bottom-2 right-3 text-white bg-black/60 px-2 rounded'>{'remote-user'}</p> */}
               </>
             )}
             
