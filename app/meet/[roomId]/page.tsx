@@ -28,7 +28,8 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
-
+  const [isCallActive, setIsCallActive] = useState(false);
+ 
 
   useEffect(() => {
     if (!socket || !roomId) return;
@@ -46,16 +47,19 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
       console.log("offer-available event");
       await webRTCRef.current?.init(false);
       await webRTCRef.current?.createAnswerForOffer(offer);
+      setIsCallActive(true);
     });
 
     socket.on("receive-offer", async (offer: RTCSessionDescriptionInit) => {
       console.log("offer received");
       await webRTCRef.current?.init(false);
       await webRTCRef.current?.createAnswerForOffer(offer);
+      setIsCallActive(true);
     });
 
     socket.on("receive-answer", async (answer: RTCSessionDescriptionInit) => {
       await webRTCRef.current?.setRemoteAnswer(answer);
+      setIsCallActive(true)
     });
 
     socket.on("receive-ice-candidate", ({ candidate }: { candidate: RTCIceCandidate }) => {
@@ -88,6 +92,7 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
   const startCall = async () => {
     console.log("starting call");
     await webRTCRef.current?.init(true);
+    setIsCallActive(true);
   };
 
   const endCall = async () => {
@@ -144,21 +149,26 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
         <button onClick={startCall} className="bg-blue-500 px-4 py-2 rounded text-white">
           Join call
         </button>
-
-            <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
-              {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
-            </button>
-            <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
-              {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
-            </button>
-            <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
-              <IoChatboxEllipses />
-            </button>
+        {isCallActive ? 
+        <>
+        <button onClick={toggleVideo} className="bg-gray-700 px-4 py-2 rounded text-white">
+          {isVideoOn ? <IoVideocam /> : <IoVideocamOff />}
+        </button>
+        <button onClick={toggleAudio} className="bg-gray-700 px-4 py-2 rounded text-white">
+          {isAudioOn ? <IoMdMic /> : <IoMdMicOff />}
+        </button>
+        <button onClick={() => setIsChatBoxOpen(prev => !prev)} className="bg-gray-700 px-4 py-2 rounded text-white">
+          <IoChatboxEllipses />
+        </button>
+        </>
+        : 
+        null}
+        
         <button onClick={endCall} className="bg-red-500 px-4 py-2 rounded text-white">
           <HiPhoneXMark />
         </button>
       </div>
-      
+
     </div>
 
   );
