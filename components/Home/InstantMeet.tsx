@@ -13,17 +13,23 @@ const InstantMeet = () => {
     }
     
   return (
-    <div className='mt-2'>
-        <button className='bg-blue-600 text-black rounded-2xl size-1/5 disabled:bg-blue-200' disabled={user && user.user===null} onClick={handleStartMeet}>Start an instant meet</button>
-        {user && user.user===null ?
-        <div className='mt-3'>
-            <p>Please SignIn to start the meet</p>
-            <div className='bg-blue-600 size-1/12 text-black rounded-2xl'>
-                <SignInButton/>
-            </div>
-            
+    <div className="flex flex-col gap-4 mt-4 w-full max-w-sm">
+      <button
+        className="bg-blue-600 text-white font-medium py-2 px-4 rounded-xl w-full hover:bg-blue-700 transition disabled:bg-blue-300"
+        disabled={!user}
+        onClick={handleStartMeet}
+      >
+        Start an Instant Meet
+      </button>
+
+      {!user && (
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm text-gray-800">
+          <p className="mb-2">Please sign in to start a meet</p>
+          <div className="inline-block">
+            <SignInButton />
+          </div>
         </div>
-        :null}
+      )}
     </div>
   )
 }
