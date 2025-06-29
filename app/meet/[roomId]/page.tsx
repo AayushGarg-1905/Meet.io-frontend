@@ -3,7 +3,7 @@ import { useSocket } from '@/context/SocketProvider';
 import WebRTCHandler from '@/utils/WebRTCHandler';
 import { redirect } from 'next/navigation'
 import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { use, useEffect, useRef, useState } from 'react'
 import {
   IoMdMic,
   IoMdMicOff,
@@ -15,13 +15,11 @@ import {
 import ChatBox from '@/components/Meet/ChatBox';
 
 interface PageProps {
-  params: {
-    roomId: string;
-  };
+  params: Promise<{ roomId: string }>
 }
 
 const VideoPage = ({ params }: PageProps) => {
-  const { roomId } = params;
+  const { roomId } = use(params);
   const socket = useSocket();
   const localVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const remoteVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
