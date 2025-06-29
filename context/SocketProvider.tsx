@@ -16,7 +16,7 @@ interface SocketProviderProps {
 }
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-  const socket = useMemo(() => io('http://localhost:8081'), []);
+  const socket = useMemo(() => io(process.env.NEXT_PUBLIC_SIGNALING_SERVER_URL as string), []);
 
   return (
     <SocketContext.Provider value={socket}>
