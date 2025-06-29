@@ -13,6 +13,7 @@ import {
   IoChatboxEllipses,
 } from '@/components/Meet/icons'
 import ChatBox from '@/components/Meet/ChatBox';
+import { useUser } from '@clerk/nextjs';
 
 interface RoomParams {
   roomId: string;
@@ -21,7 +22,7 @@ interface RoomParams {
 const VideoPage = ({ params }: { params: { roomId: string } }) => {
   const { roomId } = params
   const socket = useSocket();
-
+  const user = useUser();
   const localVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const remoteVideoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
   const webRTCRef = useRef<WebRTCHandler | null>(null);
@@ -121,20 +122,25 @@ const VideoPage = ({ params }: { params: { roomId: string } }) => {
 
       <div className="flex w-full flex-1 overflow-hidden">
         <div className={`flex flex-1 h-full ${isChatBoxOpen ? 'mr-2' : ''} border-2 border-blue-400`}>
-          <div className="flex w-full h-full ">
+          <div className="flex w-full h-full relative">
             <video
               ref={localVideoRef}
               autoPlay
               muted
               className="w-1/2 h-full bg-black object-cover border-2 border-black"
             />
+            <p className='absolute bottom-2 left-3 text-white bg-black/60 px-2 rounded'>{user.user?.fullName || 'User-1'}</p>
             {remoteVideoRef.current?.srcObject !== null && (
+              <>
               <video
                 ref={remoteVideoRef}
                 autoPlay
                 className="w-1/2 h-full bg-black object-cover border-2 border-black"
               />
+              <p className='absolute bottom-2 right-3 text-white bg-black/60 px-2 rounded'>{'remote-user'}</p>
+              </>
             )}
+            
           </div>
         </div>
 
