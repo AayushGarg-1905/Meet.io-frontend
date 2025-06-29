@@ -1,7 +1,7 @@
 'use client'
 import { useSocket } from '@/context/SocketProvider';
 import WebRTCHandler from '@/utils/WebRTCHandler';
-import { redirect, useParams } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -9,16 +9,11 @@ import {
   IoMdMicOff,
   IoVideocam,
   IoVideocamOff,
-  FcEndCall,
   HiPhoneXMark,
   IoChatboxEllipses,
 } from '@/components/Meet/icons'
 import ChatBox from '@/components/Meet/ChatBox';
-import { useUser } from '@clerk/nextjs';
 
-interface RoomParams {
-  roomId: string;
-}
 
 const VideoPage = ({ params }:{params:{roomId:string}}) => {
   const { roomId } = params;
